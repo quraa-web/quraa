@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#073b2c">
+<meta name="description" content="قُرّاء QURAA — منصتك للاستماع إلى القرآن الكريم وقراءته.">
+<title>QURAA | قُرّاء</title>
+
+<style>
+:root {
+  --green: #073b2c;
+  --green2: #0b513c;
+  --gold: #d8b568;
+  --cream: #f8f4e9;
+  --muted: #b9c9bf;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  color: var(--cream);
+  background:
+    radial-gradient(ellipse at top, #15563f 0%, transparent 60%),
+    var(--green);
+  font-family: Tahoma, Arial, sans-serif;
+  min-height: 100vh;
+}
+header {
+  padding: 22px 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-bottom: 1px solid #d8b56844;
+  flex-wrap: wrap;
+}
+.logo {
+  color: var(--gold);
+  font-size: 27px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+.logo small {
+  display: block;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-align: center;
+  margin-top: 5px;
+}
+nav a {
+  color: var(--cream);
+  text-decoration: none;
+  margin: 0 8px;
+  font-size: 14px;
+}
+nav a:hover { color: var(--gold); }
+.hero {
+  text-align: center;
+  padding: 55px 18px 35px;
+}
+.ornament {
+  color: var(--gold);
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: clamp(32px, 6vw, 53px);
+  margin: 10px 0;
+  color: var(--gold);
+}
+.hero p {
+  color: var(--muted);
+  line-height: 1.9;
+  margin: 12px auto 24px;
+  max-width: 550px;
+}
+.search {
+  width: min(100%, 480px);
+  padding: 14px 18px;
+  border: 1px solid #d8b56877;
+  border-radius: 30px;
+  background: #ffffff0d;
+  color: white;
+  font-size: 15px;
+  outline: none;
+}
+.search::placeholder { color: #c4d0c9; }
+main {
+  width: min(1100px, 92%);
+  margin: auto;
+  padding-bottom: 45px;
+}
+.section-title {
+  color: var(--gold);
+  font-size: 23px;
+  margin: 20px 0;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 22px;
+}
+.panel {
+  border: 1px solid #d8b56844;
+  background: #ffffff08;
+  border-radius: 18px;
+  padding: 20px;
+  min-width: 0;
+}
+.surah-list {
+  display: grid;
+  gap: 10px;
+  max-height: 430px;
+  overflow-y: auto;
+}
+.surah {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  background: #ffffff08;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--cream);
+  text-align: right;
+  width: 100%;
+}
+.surah:hover, .surah.active {
+  border-color: var(--gold);
+  background: #d8b56818;
+}
+.surah-number { color: var(--gold); min-width: 25px; }
+.surah-name { flex: 1; }
+.surah-type { font-size: 11px; color: var(--muted); }
+select, button {
+  font-family: inherit;
+}
+select {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0 15px;
+  border: 1px solid #d8b56866;
+  border-radius: 10px;
+  background: #0b513c;
+  color: white;
+  font-size: 14px;
+}
+button {
+  cursor: pointer;
+}
+.gold-button {
+  border: 0;
+  background: var(--gold);
+  color: #173526;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: bold;
+}
+.gold-button:hover { filter: brightness(1.08); }
+.reader-title {
+  color: var(--gold);
+  font-size: 25px;
+  text-align: center;
+  margin: 8px 0;
+}
+.reader-subtitle {
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+.quran-text {
+  font-family: "Traditional Arabic", "Amiri", serif;
+  font-size: 27px;
+  line-height: 2.2;
+  text-align: justify;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.ayah {
+  cursor: pointer;
+  border-radius: 5px;
+}
+.ayah:hover { background: #d8b56818; }
+.ayah.selected { color: var(--gold); }
+.ayah-number {
+  color: var(--gold);
+  font-size: 16px;
+  white-space: nowrap;
+}
+.player {
+  border-top: 1px solid #d8b56844;
+  margin-top: 22px;
+  padding-top: 18px;
+}
+audio { width: 100%; margin: 10px 0; }
+.status {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+footer {
+  text-align: center;
+  padding: 25px 12px;
+  color: var(--muted);
+  border-top: 1px solid #d8b56833;
+  font-size: 13px;
+}
+footer span { color: var(--gold); }
+@media(max-width:750px) {
+  header { justify-content: center; text-align: center; }
+  nav { width: 100%; }
+  .layout { grid-template-columns: 1fr; }
+  .hero { padding-top: 35px; }
+  .quran-text { font-size: 25px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">
+    QURAA
+    <small>قُرّاء</small>
+  </div>
+  <nav>
+    <a href="#home">الرئيسية</a>
+    <a href="#surahs">السور</a>
+    <a href="#listen">الاستماع</a>
+  </nav>
+</header>
+
+<section class="hero" id="home">
+  <div class="ornament">۞</div>
+  <h1>القرآن الكريم</h1>
+  <p>عِش مع آيات القرآن الكريم، واقرأ بتدبّر، واستمع إلى التلاوات العطرة.</p>
+  <input
+    id="search"
+    class="search"
+    type="search"
+    placeholder="ابحث عن سورة..."
+    aria-label="ابحث عن سورة"
+  >
+</section>
+
+<main>
+  <div class="layout">
+
+    <section class="panel" id="surahs">
+      <h2 class="section-title">۞ سور القرآن الكريم</h2>
+      <div id="surahList" class="surah-list">
+        <p class="status">جارٍ تحميل سور القرآن الكريم...</p>
+      </div>
+    </section>
+
+    <section class="panel" id="listen">
+      <h2 class="section-title">۞ القراءة والاستماع</h2>
+
+      <div id="surahTitle" class="reader-title">اختر سورة للبدء</div>
+      <div id="surahInfo" class="reader-subtitle">
+        114 سورة من القرآن الكريم
+      </div>
+
+      <label for="readerSelect">اختر القارئ:</label>
+      <select id="readerSelect">
+        <option value="ar.alafasy">مشاري العفاسي</option>
+        <option value="ar.abdulbasit">عبد الباسط عبد الصمد</option>
+        <option value="ar.minshawi">محمد صديق المنشاوي</option>
+        <option value="ar.husary">محمود خليل الحصري</option>
+        <option value="ar.mahermuaiqly">ماهر المعيقلي</option>
+      </select>
+
+      <div id="quranText" class="quran-text">
+        <p class="status" style="text-align:center">
+          اختر اسم السورة من القائمة لعرض آياتها.
+        </p>
+      </div>
+
+      <div class="player">
+        <label for="audioPlayer">استمع إلى التلاوة:</label>
+        <audio id="audioPlayer" controls preload="none"></audio>
+        <p id="audioStatus" class="status">
+          اختر سورة ثم شغّل التلاوة.
+        </p>
+        <button id="downloadButton" class="gold-button" hidden>
+          تنزيل المقطع الصوتي
+        </button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="ornament">۞</div>
+  <p>QURAA <span>قُرّاء</span></p>
+  <p>اللهم اجعل القرآن الكريم ربيع قلوبنا ونور صدورنا.</p>
+</footer>
+
+<script>
+const API = "https://api.alquran.cloud/v1";
+
+const surahList = document.getElementById("surahList");
+const searchInput = document.getElementById("search");
+const surahTitle = document.getElementById("surahTitle");
+const surahInfo = document.getElementById("surahInfo");
+const quranText = document.getElementById("quranText");
+const readerSelect = document.getElementById("readerSelect");
+const audioPlayer = document.getElementById("audioPlayer");
+const audioStatus = document.getElementById("audioStatus");
+const downloadButton = document.getElementById("downloadButton");
+
+let allSurahs = [];
+let currentSurah = null;
+let currentAudioUrl = "";
+
+async function fetchJSON(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("تعذر الاتصال بالخدمة");
+  const data = await response.json();
+  if (data.code !== 200) throw new Error("تعذر تحميل البيانات");
+  return data.data;
+}
+
+async function loadSurahs() {
+  try {
+    allSurahs = await fetchJSON(`${API}/surah`);
+    renderSurahs(allSurahs);
+  } catch (error) {
+    surahList.innerHTML =
+      '<p class="status">تعذر تحميل السور. تأكد من اتصال الإنترنت ثم أعد تحميل الصفحة.</p>';
+  }
+}
+
+function renderSurahs(surahs) {
+  surahList.innerHTML = "";
+
+  if (!surahs.length) {
+    surahList.innerHTML =
+      '<p class="status">لا توجد نتائج مطابقة للبحث.</p>';
+    return;
+  }
+
+  surahs.forEach(surah => {
+    const button = document.createElement("button");
+    button.className = "surah" +
+      (currentSurah && currentSurah.number === surah.number ? " active" : "");
+
+    const number = document.createElement("span");
+    number.className = "surah-number";
+    number.textContent = surah.number;
+
+    const name = document.createElement("span");
+    name.className = "surah-name";
+    name.textContent = surah.name;
+
+    const type = document.createElement("span");
+    type.className = "surah-type";
+    type.textContent = surah.revelationType === "Meccan" ? "مكية" : "مدنية";
+
+    button.append(number, name, type);
+    button.addEventListener("click", () => loadSurah(surah));
+    surahList.appendChild(button);
+  });
+}
+
+async function loadSurah(surah) {
+  currentSurah = surah;
+
+  surahTitle.textContent = surah.name;
+  surahInfo.textContent =
+    `${surah.numberOfAyahs} آية • ${surah.revelationType === "Meccan" ? "مكية" : "مدنية"}`;
+
+  quranText.textContent = "جارٍ تحميل الآيات...";
+  audioStatus.textContent = "جارٍ تجهيز التلاوة...";
+  downloadButton.hidden = true;
+
+  renderSurahs(
+    allSurahs.filter(item =>
+      item.name.includes(searchInput.value.trim()) ||
+      String(item.number).includes(searchInput.value.trim())
+    )
+  );
+
+  try {
+    const data = await fetchJSON(`${API}/surah/${surah.number}/quran-uthmani`);
+
+    quranText.innerHTML = "";
+
+    data.ayahs.forEach(ayah => {
+      const span = document.createElement("span");
+      span.className = "ayah";
+      span.textContent = ayah.text + " ";
+
+      const number = document.createElement("span");
+      number.className = "ayah-number";
+      number.textContent = `۞${toArabicNumber(ayah.numberInSurah)}۞ `;
+
+      span.appendChild(number);
+      span.addEventListener("click", () => {
+        document.querySelectorAll(".ayah.selected").forEach(el =>
+          el.classList.remove("selected")
+        );
+        span.classList.add("selected");
+      });
+
+      quranText.appendChild(span);
+    });
+
+    await loadAudio();
+  } catch (error) {
+    quranText.textContent =
+      "تعذر تحميل الآيات. تحقق من الإنترنت وحاول مرة أخرى.";
+    audioStatus.textContent = "تعذر تحميل البيانات.";
+  }
+}
+
+function toArabicNumber(number) {
+  return String(number).replace(/\d/g, digit => "٠١٢٣٤٥٦٧٨٩"[digit]);
+}
+
+async function loadAudio() {
+  if (!currentSurah) return;
+
+  audioPlayer.pause();
+  audioPlayer.removeAttribute("src");
+  audioPlayer.load();
+  downloadButton.hidden = true;
+  audioStatus.textContent = "جارٍ تحميل رابط التلاوة...";
+
+  const edition = readerSelect.value;
+
+  try {
+    const data = await fetchJSON(
+      `${API}/surah/${currentSurah.number}/${edition}`
+    );
+
+    if (!data.ayahs || !data.ayahs.length || !data.ayahs[0].audio) {
+      throw new Error("لا يوجد ملف صوتي");
+    }
+
+    currentAudioUrl = data.ayahs[0].audio;
+    audioPlayer.src = currentAudioUrl;
+    audioPlayer.load();
+
+    audioStatus.textContent =
+      "التلاوة جاهزة. اضغط تشغيل للاستماع.";
+
+    downloadButton.hidden = false;
+  } catch (error) {
+    currentAudioUrl = "";
+    audioStatus.textContent =
+      "تعذر توفير التلاوة لهذا القارئ حاليًا. جرّب قارئًا آخر.";
+  }
+}
+
+readerSelect.addEventListener("change", loadAudio);
+
+searchInput.addEventListener("input", () => {
+  const query = searchInput.value.trim();
+  renderSurahs(allSurahs.filter(surah =>
+    surah.name.includes(query) ||
+    String(surah.number).includes(query)
+  ));
+});
+
+downloadButton.addEventListener("click", async () => {
+  if (!currentAudioUrl) return;
+
+  audioStatus.textContent = "جارٍ تجهيز التنزيل...";
+
+  try {
+    const response = await fetch(currentAudioUrl);
+    if (!response.ok) throw new Error("تعذر التنزيل");
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `QURAA-surah-${currentSurah.number}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+    audioStatus.textContent = "بدأ تنزيل المقطع الصوتي.";
+  } catch (error) {
+    audioStatus.textContent =
+      "تعذر التنزيل المباشر من مصدر الصوت. يمكنك استخدام خيارات مشغل الصوت إن كانت متاحة.";
+    window.open(currentAudioUrl, "_blank", "noopener");
+  }
+});
+
+audioPlayer.addEventListener("error", () => {
+  audioStatus.textContent =
+    "تعذر تشغيل الصوت حاليًا. تحقق من الإنترنت أو جرّب قارئًا آخر.";
+});
+
+loadSurahs();
+</script>
+
+</body>
+</html>
