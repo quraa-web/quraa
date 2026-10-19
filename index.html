@@ -328,10 +328,8 @@ footer {
           <option value="ar.abdurrahmaansudais">عبدالرحمن السديس</option>
           <option value="ar.husary">محمود خليل الحصري</option>
           <option value="ar.minshawi">محمد صديق المنشاوي</option>
-          <optgroup label="تلاوات خاصة من Internet Archive">
-            <option value="archive:khatma">القارئ مشاري راشد العفاسي الختمة المرتلة من كاليفورنيا © 1430 هـ</option>
-            <option value="archive:rokya">الرقية الشرعية — الشيخ محمد جبريل</option>
-          </optgroup>
+          <option value="archive:khatma">مشاري العفاسي — الختمة المرتلة من كاليفورنيا 1430 هـ</option>
+          <option value="archive:rokya">الرقية الشرعية — الشيخ محمد جبريل</option>
         </select>
       </div>
 
@@ -454,7 +452,7 @@ const ruqyaTracks = [
 ];
 const KHATMA_BASE = "https://archive.org/download/Khatma1430California/";
 let khatmaTracks = [];
-const KHATMA_DISPLAY_NAME = "القارئ مشاري راشد العفاسي الختمة المرتلة من كاليفورنيا © 1430 هـ";
+const KHATMA_DISPLAY_NAME = "مشاري العفاسي — الختمة المرتلة من كاليفورنيا 1430 هـ";
 const audioButtons = document.querySelector(".audio-buttons");
 const audioStatus = document.getElementById("audioStatus");
 const playButton = document.getElementById("playButton");
@@ -547,7 +545,20 @@ function renderSurahs(filter = "") {
     meta.textContent = surah.numberOfAyahs + " آية";
 
     button.append(number, name, meta);
-    button.addEventListener("click", () => loadSurah(surah.number));
+    button.addEventListener("click", async () => {
+      if (recitationMode !== "quran") {
+        // The lower list is a Quran surah navigator; switch back to Quran mode
+        // rather than trying to interpret a Quran surah as an archive track.
+        readerSelect.value = "ar.alafasy";
+        updateRecitationSelection();
+      }
+      await loadSurah(surah.number, false);
+      // Selecting a surah from the lower list should start it, not leave the
+      // player paused after the previous audio source is cleared.
+      if (recitationMode === "quran" && currentSurah && currentSurah.number === surah.number) {
+        playAyah(0);
+      }
+    });
 
     surahList.appendChild(button);
   });
@@ -672,7 +683,8 @@ async function loadSurahs() {
   }
 }
 
-async function loadSurah(number) {
+async function loadSurah(number, resumeIfPlaying = false) {
+  const resumePlayback = resumeIfPlaying && recitationMode === "quran" && !audioPlayer.paused;
   const surah = allSurahs.find(item => item.number === Number(number));
 
   if (!surah) return;
@@ -738,6 +750,7 @@ async function loadSurah(number) {
     restartButton.disabled = false;
 
     setStatus(audioStatus, "تم تحميل سورة " + surah.name + ". اضغط تشغيل للاستماع.");
+    if (resumePlayback) playAyah(0);
 
   } catch (error) {
     if (thisRequest !== requestNumber) return;
@@ -796,17 +809,29 @@ async function playAyah(index) {
   );
 
   try {
-    const data = await fetchJSON(
-      API + "/surah/" + surahNumber + "/" + reader
-    );
+    let selectedAyah = null;
+    try {
+      const data = await fetchJSON(API + "/surah/" + surahNumber + "/" + reader);
+      selectedAyah = (data.ayahs || [])[index] || null;
+    } catch (editionError) {
+      console.warn("Surah audio edition lookup failed; trying global ayah endpoint.", editionError);
+    }
 
     if (thisAudioRequest !== audioRequestNumber) return;
 
-    const ayahs = data.ayahs || [];
-    const selectedAyah = ayahs[index];
+    // Some API responses omit audio on the surah edition endpoint. Retry using
+    // the global ayah number, which returns the audio URL for the same reader.
+    if (!selectedAyah || !selectedAyah.audio) {
+      const globalAyahNumber = currentAyahs[index] && currentAyahs[index].number;
+      if (globalAyahNumber) {
+        const ayahData = await fetchJSON(API + "/ayah/" + globalAyahNumber + "/" + reader);
+        if (thisAudioRequest !== audioRequestNumber) return;
+        selectedAyah = ayahData;
+      }
+    }
 
     if (!selectedAyah || !selectedAyah.audio) {
-      throw new Error("الملف الصوتي غير متاح لهذه الآية.");
+      throw new Error("لم يصل رابط صوت لهذه الآية من مصدر التلاوة. جرّب اختيار قارئ آخر أو تحقق من الإنترنت.");
     }
 
     audioPlayer.src = selectedAyah.audio;
@@ -917,7 +942,10 @@ surahSelect.addEventListener("change", event => {
     audioPlayer.load();
     return;
   }
-  if (recitationMode === "quran") loadSurah(Number(event.target.value));
+  if (recitationMode === "quran") {
+    const wasPlaying = !audioPlayer.paused && !audioPlayer.ended;
+    loadSurah(Number(event.target.value), wasPlaying);
+  }
 });
 
 searchInput.addEventListener("input", event => {
@@ -983,31 +1011,6 @@ function updateRecitationSelection() {
     audioPlayer.src = ruqyaTracks[0].url;
     audioPlayer.load();
     setStatus(audioStatus, "الرقية الشرعية: اختر الجزء من قائمة «اختر السورة»، ثم شغّله من مشغل الصوت.");
-    return;
-  }
-
-  const item = archiveItems[choice];
-  if (item) {
-    recitationMode = "archive";
-    ++audioRequestNumber;
-    loadingAudio = false;
-    audioPlayer.pause();
-    audioPlayer.removeAttribute("src");
-    audioPlayer.load();
-    audioPlayer.hidden = true;
-    audioButtons.hidden = true;
-    archiveRecitationWrap.hidden = false;
-    archiveRecitationPlayer.title = "مشغل " + item.title;
-    archiveRecitationPlayer.src = item.embed;
-    archiveRecitationLink.href = item.details;
-    archiveRecitationLink.textContent = "فتح التسجيل الأصلي على Internet Archive ↗";
-    surahSelect.replaceChildren();
-    const option = document.createElement("option");
-    option.value = "archive";
-    option.textContent = "التسجيل الكامل — ختمة ١٤٣٠ هـ";
-    surahSelect.appendChild(option);
-    surahSelect.disabled = true;
-    setStatus(audioStatus, "تم اختيار: " + item.title + ". شغّل التسجيل من المشغّل أدناه.");
     return;
   }
 
