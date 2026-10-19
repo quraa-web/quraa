@@ -12,8 +12,8 @@
   --cream: #f8f4e9;    
   --text: #f8f4e9;    
   --muted: #c8d6cd;    
-}    {
-box-sizing: border-box;
+}    * {
+  box-sizing: border-box;
 }
 
 
@@ -288,7 +288,9 @@ padding: 14px;
 @media(max-width:520px) { .page-toolbar { grid-template-columns:1fr 1fr; } .page-toolbar .page-jump { grid-column:1 / -1; grid-row:1; } .page-toolbar button { min-width:0; } }
 
 /* عرض صورة المصحف فقط؛ إخفاء قائمة الآيات النصية المكررة حتى لا يظن القارئ أنها صفحة المصحف */
-.layout .panel:nth-child(2) { display: none !important; }
+.layout .panel:nth-child(2) {
+  display: block !important;
+}
 .mushaf-panel { scroll-margin-top: 12px; }
 
 .archive-player-frame { width:100%; min-height:180px; border:1px solid var(--gold); border-radius:14px; background:#fff; }
@@ -579,6 +581,12 @@ try {
 const data = await fetchJSON(API + "/page/" + page + "/quran-uthmani");
 if (thisRequest !== pageRequestNumber) return;
 currentPageAyahs = data.ayahs || [];
+
+// تحديث النص أسفل المصحف بالآيات الموجودة في الصفحة الحالية.
+if (currentSurah && currentAyahs.length) {
+  renderCurrentPageAyahs();
+}
+
 const first = currentPageAyahs[0];
 const last = currentPageAyahs[currentPageAyahs.length - 1];
 if (first && last) {
@@ -680,91 +688,147 @@ setStatus(
 }
 
 async function loadSurah(number, resumeIfPlaying = false) {
-const resumePlayback = resumeIfPlaying && recitationMode === "quran" && !audioPlayer.paused;
-const surah = allSurahs.find(item => item.number === Number(number));
+  const resumePlayback =
+    resumeIfPlaying &&
+    recitationMode === "quran" &&
+    !audioPlayer.paused;
 
-if (!surah) return;
+  const surah = allSurahs.find(
+    item => item.number === Number(number)
+  );
 
-const thisRequest = ++requestNumber;
-++audioRequestNumber;
+  if (!surah) return;
 
-currentSurah = surah;
-currentAyahs = [];
-currentAyahIndex = 0;
-loadingAudio = false;
+  const thisRequest = ++requestNumber;
+  ++audioRequestNumber;
 
-audioPlayer.pause();
-audioPlayer.removeAttribute("src");
-audioPlayer.load();
+  currentSurah = surah;
+  currentAyahs = [];
+  currentAyahIndex = 0;
+  loadingAudio = false;
 
-playButton.disabled = true;
-restartButton.disabled = true;
+  audioPlayer.pause();
+  audioPlayer.removeAttribute("src");
+  audioPlayer.load();
 
-surahSelect.value = String(surah.number);
-currentSurahTitle.textContent = surah.name;
-surahInfo.textContent = "جاري تحميل الآيات...";
-quranText.innerHTML = '<div class="empty">جاري تحميل الآيات الكريمة...</div>';
+  playButton.disabled = true;
+  restartButton.disabled = true;
 
-renderSurahs(searchInput.value);
+  surahSelect.value = String(surah.number);
+  currentSurahTitle.textContent = surah.name;
+  surahInfo.textContent = "جاري تحميل الآيات...";
+  quranText.innerHTML =
+    '<div class="empty">جاري تحميل الآيات الكريمة...</div>';
 
-try {
-const data = await fetchJSON(
-API + "/surah/" + surah.number + "/quran-uthmani"
-);
+  renderSurahs(searchInput.value);
 
-if (thisRequest !== requestNumber) return;    
+  try {
+    const data = await fetchJSON(
+      API + "/surah/" + surah.number + "/quran-uthmani"
+    );
 
-currentAyahs = data.ayahs || [];    
+    if (thisRequest !== requestNumber) return;
 
-if (!currentAyahs.length) {    
-  throw new Error("لم تصل آيات السورة.");    
-}    
+    currentAyahs = data.ayahs || [];
 
-quranText.replaceChildren();    
+    if (!currentAyahs.length) {
+      throw new Error("لم تصل آيات السورة.");
+    }
 
-currentAyahs.forEach((ayah, index) => {    
-  const span = document.createElement("span");    
-  span.className = "ayah";    
-  span.dataset.index = index;    
-  span.textContent = ayah.text + " ";    
+    surahInfo.textContent =
+      (surah.revelationType === "Meccan" ? "مكية" : "مدنية") +
+      " • عدد الآيات: " + surah.numberOfAyahs;
 
-  span.addEventListener("click", () => playAyah(index));    
+    playButton.disabled = false;
+    restartButton.disabled = false;
 
-  quranText.appendChild(span);    
+    // اعرض آيات الصفحة الحالية فقط.
+    renderCurrentPageAyahs();
 
-  const numberSpan = document.createElement("span");    
-  numberSpan.className = "ayah-number";    
-  numberSpan.textContent = "۞ " + toArabicNumbers(ayah.numberInSurah) + " ";    
-  quranText.appendChild(numberSpan);    
-});    
+    setStatus(
+      audioStatus,
+      "تم تحميل سورة " + surah.name + ". اضغط تشغيل للاستماع."
+    );
 
-surahInfo.textContent =    
-  surah.revelationType === "Meccan" ? "مكية" : "مدنية";    
-surahInfo.textContent += " • عدد الآيات: " + surah.numberOfAyahs;    
+    if (resumePlayback) {
+      playAyah(0);
+    }
 
-playButton.disabled = false;    
-restartButton.disabled = false;    
+  } catch (error) {
+    if (thisRequest !== requestNumber) return;
 
-setStatus(audioStatus, "تم تحميل سورة " + surah.name + ". اضغط تشغيل للاستماع.");    
-if (resumePlayback) playAyah(0);
+    console.error("QURAA loadSurah error:", error);
 
-} catch (error) {
-if (thisRequest !== requestNumber) return;
+    quranText.innerHTML = "";
 
-console.error("QURAA loadSurah error:", error);    
+    const message = document.createElement("div");
+    message.className = "empty";
+    message.textContent =
+      "تعذر تحميل آيات السورة. تحقق من الإنترنت وحاول مرة أخرى.";
 
-quranText.innerHTML = "";    
-const message = document.createElement("div");    
-message.className = "empty";    
-message.textContent = "تعذر تحميل آيات السورة. تحقق من الإنترنت وحاول مرة أخرى.";    
-quranText.appendChild(message);    
+    quranText.appendChild(message);
 
-surahInfo.textContent = "تعذر تحميل السورة";    
-setStatus(audioStatus, error.message, true);
+    surahInfo.textContent = "تعذر تحميل السورة";
 
+    setStatus(audioStatus, error.message, true);
+  }
 }
-}
+function renderCurrentPageAyahs() {
+  quranText.replaceChildren();
 
+  if (!currentPageAyahs.length || !currentAyahs.length) {
+    const message = document.createElement("div");
+    message.className = "empty";
+    message.textContent = "جاري تجهيز آيات الصفحة...";
+    quranText.appendChild(message);
+    return;
+  }
+
+  // استخراج آيات السورة الموجودة في صفحة المصحف الحالية.
+  const pageAyahs = currentPageAyahs.filter(
+    ayah => ayah.surah &&
+            currentSurah &&
+            ayah.surah.number === currentSurah.number
+  );
+
+  if (!pageAyahs.length) {
+    const message = document.createElement("div");
+    message.className = "empty";
+    message.textContent =
+      "لا توجد آيات من سورة " + currentSurah.name +
+      " في الصفحة الحالية من المصحف.";
+
+    quranText.appendChild(message);
+    return;
+  }
+
+  pageAyahs.forEach(pageAyah => {
+    const index = currentAyahs.findIndex(
+      ayah => ayah.numberInSurah === pageAyah.numberInSurah
+    );
+
+    if (index < 0) return;
+
+    const span = document.createElement("span");
+    span.className = "ayah";
+    span.dataset.index = index;
+    span.textContent = pageAyah.text + " ";
+
+    span.addEventListener("click", () => playAyah(index));
+
+    quranText.appendChild(span);
+
+    const numberSpan = document.createElement("span");
+    numberSpan.className = "ayah-number";
+    numberSpan.textContent =
+      "۞ " + toArabicNumbers(pageAyah.numberInSurah) + " ";
+
+    quranText.appendChild(numberSpan);
+  });
+
+  // الاحتفاظ بتظليل الآية الحالية إن كانت ضمن الصفحة.
+  markPlaying(currentAyahIndex);
+}
 function toArabicNumbers(value) {
 return String(value).replace(/\d/g, digit => "٠١٢٣٤٥٦٧٨٩"[digit]);
 }
@@ -778,7 +842,7 @@ const active = quranText.querySelector('[data-index="' + index + '"]');
 
 if (active) {
 active.classList.add("playing");
-active.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
 }
 }
 
