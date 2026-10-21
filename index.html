@@ -365,7 +365,6 @@ body[data-theme="light"] .tool-card button{box-shadow:0 1px 2px rgba(54,43,20,.0
 @media(max-width:480px){.tools-panel>summary{min-height:38px;padding:7px 9px}.tools-panel>summary small{max-width:52%;font-size:10px}.tools-grid{grid-template-columns:1fr 1fr;gap:7px}.tool-card{padding:8px}.tool-card h3{font-size:13px}.tool-row button{padding:6px 8px}.tools-content{padding:8px}}
 @media(max-width:360px){.tools-grid{grid-template-columns:1fr}.tools-panel>summary small{display:none}}
 
-
 /* بث إذاعة القرآن الكريم من القاهرة - مشغل صوت مباشر */
 .live-shell{margin:10px auto 14px}
 .live-panel{border:1px solid rgba(216,182,106,.45);border-radius:12px;overflow:hidden;background:var(--panel,rgba(0,0,0,.12))}
@@ -385,7 +384,6 @@ body[data-theme="light"] .live-radio-desc,body[data-theme="light"] .live-radio-s
 body[data-theme="light"] .live-radio-retry{color:#604711;border-color:#a98635;background:#f8edcf}
 body[data-theme="oled"] .live-panel{background:#050505}
 @media(max-width:480px){.live-radio-content{padding:10px}.live-panel>summary{padding:9px 10px}.live-panel>summary .live-hint{font-size:10px}}
-
 </style>
 </head>
 
@@ -412,7 +410,6 @@ body[data-theme="oled"] .live-panel{background:#050505}
     </div>
   </details>
 </section>
-
 
 <section class="container live-shell" aria-label="بث إذاعة القرآن الكريم من القاهرة">
   <details class="live-panel">
@@ -452,11 +449,28 @@ body[data-theme="oled"] .live-panel{background:#050505}
       <div>
         <label for="readerSelect" class="status">اختر القارئ</label>
         <select id="readerSelect">
-          <option value="ar.alafasy">مشاري العفاسي</option>
-          <option value="ar.abdurrahmaansudais">عبدالرحمن السديس</option>
-          <option value="ar.husary">محمود خليل الحصري</option>
-          <option value="ar.minshawi">محمد صديق المنشاوي</option>
-          <optgroup label="تلاوات خاصة">
+          <optgroup label="القراء المعتمدون">
+            <option value="ar.alafasy">مشاري راشد العفاسي</option>
+            <option value="ar.abdurrahmaansudais">عبد الرحمن السديس</option>
+            <option value="ar.mahermuaiqly">ماهر المعيقلي</option>
+            <option value="ar.saeedghamdi">سعد الغامدي</option>
+            <option value="ar.abdulbasitmurattal">عبد الباسط عبد الصمد (مرتل)</option>
+            <option value="ar.minshawi">محمد صديق المنشاوي</option>
+            <option value="ar.husary">محمود خليل الحصري</option>
+            <option value="ar.ahmedajamy">أحمد العجمي</option>
+            <option value="ar.shuraim">سعود الشريم</option>
+            <option value="ar.hudhaify">علي الحذيفي</option>
+            <option value="ar.muhammadayyoub">محمد أيوب</option>
+            <option value="ar.muhammadjibreel">محمد جبريل</option>
+            <option value="ar.yasseraldossari">ياسر الدوسري</option>
+            <option value="ar.nasseralqatami">ناصر القطامي</option>
+            <option value="ar.salahalbudair">صلاح البدير</option>
+            <option value="ar.abdulmohsensalqasim">عبد المحسن القاسم</option>
+            <option value="ar.azizalahmad">عبد العزيز الأحمد</option>
+            <option value="ar.abdullahbasfar">عبد الله بصفر</option>
+          </optgroup>
+          <optgroup label="تلاوات وبث مباشر">
+            <option value="live:cairo_radio">إذاعة القرآن الكريم من القاهرة (بث مباشر)</option>
             <option value="archive:khatma">القارئ مشاري راشد العفاسي الختمة المرتلة من كاليفورنيا © 1430 هـ</option>
             <option value="archive:rokya">الرقية الشرعية — الشيخ محمد جبريل</option>
           </optgroup>
@@ -853,10 +867,15 @@ async function loadSurahs() {
     allSurahs = data;
     renderSurahs();
 
-    // لا تسمح لطلب تحميل قائمة السور عند بدء الصفحة أن يستبدل قائمة
-    // تلاوة خاصة أو تلاوة مستوردة إذا غيّر المستخدم القارئ أثناء الطلب.
     const currentChoice = readerSelect.value;
-    const isStandardReader = ["ar.alafasy", "ar.abdurrahmaansudais", "ar.husary", "ar.minshawi"].includes(currentChoice);
+    const standardReadersList = [
+      "ar.alafasy", "ar.abdurrahmaansudais", "ar.mahermuaiqly", "ar.saeedghamdi",
+      "ar.abdulbasitmurattal", "ar.minshawi", "ar.husary", "ar.ahmedajamy",
+      "ar.shuraim", "ar.hudhaify", "ar.muhammadayyoub", "ar.muhammadjibreel",
+      "ar.yasseraldossari", "ar.nasseralqatami", "ar.salahalbudair",
+      "ar.abdulmohsensalqasim", "ar.azizalahmad", "ar.abdullahbasfar"
+    ];
+    const isStandardReader = standardReadersList.includes(currentChoice);
     if (recitationMode === "quran" && isStandardReader && !standardRestoreInProgress) {
       const previousValue = surahSelect.value;
       surahSelect.replaceChildren();
@@ -942,7 +961,6 @@ async function loadSurah(number) {
       throw new Error("لم تصل آيات السورة.");
     }
 
-    // Keep the visible written text limited to the current Mushaf page.
     if (!currentAyahs.some(ayah => Number(ayah.page) === Number(currentPage))) {
       const firstPage = currentAyahs[0] && Number(currentAyahs[0].page);
       if (firstPage) await loadMushafPage(firstPage);
@@ -987,7 +1005,6 @@ function markPlaying(index) {
   const active = quranText.querySelector('[data-index="' + index + '"]');
 
   if (active) active.classList.add("playing");
-  // لا تحرّك الصفحة تلقائيًا عند انتقال التلاوة بين الآيات.
   if (typeof window.quraaUpdateTafsirForCurrentAyah === "function") {
     window.quraaUpdateTafsirForCurrentAyah(index);
   }
@@ -1002,7 +1019,6 @@ async function playAyah(index) {
   const ayahPage = currentAyahs[index] && currentAyahs[index].page;
   if (ayahPage && Number(ayahPage) !== currentPage) {
     loadMushafPage(Number(ayahPage));
-    // تحديث صورة صفحة المصحف دون تحريك موضع عرض الصفحة في المتصفح.
   }
   loadingAudio = true;
 
@@ -1061,7 +1077,6 @@ async function playAyah(index) {
 
     loadingAudio = false;
     console.error("QURAA per-ayah audio error; trying full-surah source:", error);
-    // Fallback source serves a complete surah for legacy readers if the ayah endpoint fails.
     try {
       const fallbackUrl = "https://cdn.islamic.network/quran/audio-surah/128/" + encodeURIComponent(reader) + "/" + surahNumber + ".mp3";
       audioPlayer.src = fallbackUrl;
@@ -1081,6 +1096,7 @@ async function playAyah(index) {
 }
 
 audioPlayer.addEventListener("ended", () => {
+  if (recitationMode === "live") return;
   if (recitationMode !== "quran") {
     if (autoplayEnabled) playNextAvailableTrack();
     else setStatus(audioStatus, "انتهى ملف التلاوة. يمكنك اختيار ملف آخر أو تفعيل التشغيل التلقائي.");
@@ -1103,7 +1119,7 @@ audioPlayer.addEventListener("ended", () => {
 });
 
 audioPlayer.addEventListener("error", () => {
-  if (audioPlayer.currentSrc) {
+  if (audioPlayer.currentSrc && recitationMode !== "live") {
     setStatus(
       audioStatus,
       "تعذر تشغيل الملف الصوتي. جرّب قارئًا آخر أو تحقق من الإنترنت.",
@@ -1129,8 +1145,6 @@ function getTrackSurahNumber(track, index, groupLength) {
     const n = Number(leading[1]);
     if (n >= 1 && n <= 114) return n;
   }
-  // Most imports are inserted in surah order. If there are exactly 114 files,
-  // use their stable database order and show canonical surah names.
   if (groupLength === 114) return index + 1;
   return null;
 }
@@ -1233,8 +1247,6 @@ async function loadAdminRecitations() {
       return { value: String(track.id ?? track.uuid ?? (readerKey + "-" + index)), title, readerName, readerKey, url, originalIndex: index };
     }).filter(track => /^https?:\/\//i.test(track.url));
 
-    // If the reader table is available, use its canonical name even when each
-    // recitation record only carries reader_id.
     parsed.forEach(track => {
       if (!track.readerName) track.readerName = readerNames.get(track.readerKey) || "قارئ من لوحة التحكم";
     });
@@ -1248,7 +1260,6 @@ async function loadAdminRecitations() {
       if (group.length === 114 && group.every(t => t.surahNumber != null)) {
         group.sort((a, b) => a.surahNumber - b.surahNumber || a.originalIndex - b.originalIndex);
       } else {
-        // Keep the database's original order when names/numbers are not reliable.
         group.sort((a, b) => a.originalIndex - b.originalIndex);
       }
     });
@@ -1258,11 +1269,14 @@ async function loadAdminRecitations() {
     adminReadersLoaded = true;
   } catch (error) {
     console.error("QURAA admin recitations error:", error);
-    // Keep the main Quran player working if the admin API is unavailable.
   }
 }
 
 playButton.addEventListener("click", () => {
+  if (recitationMode === "live") {
+    if (audioPlayer.src) audioPlayer.play().catch(() => {});
+    return;
+  }
   if (recitationMode !== "quran") {
     if (audioPlayer.src) audioPlayer.play().catch(() => {});
     return;
@@ -1275,8 +1289,6 @@ playButton.addEventListener("click", () => {
     (activeAudioAyah === currentAyahIndex || activeAudioAyah === -1) &&
     audioPlayer.hasAttribute("src") && Boolean(audioPlayer.currentSrc);
 
-  // Resume only when the loaded audio really belongs to the selected reader.
-  // Otherwise invalidate pending requests and fetch the selected reader's audio again.
   if (sourceMatchesSelection && !audioPlayer.ended && audioPlayer.paused) {
     audioPlayer.play().catch(() => {
       loadingAudio = false;
@@ -1286,7 +1298,6 @@ playButton.addEventListener("click", () => {
     return;
   }
 
-  // Do not let a stale pending request block the main Play button after reader changes.
   loadingAudio = false;
   ++audioRequestNumber;
   playAyah(currentAyahIndex);
@@ -1297,6 +1308,11 @@ pauseButton.addEventListener("click", () => {
 });
 
 restartButton.addEventListener("click", () => {
+  if (recitationMode === "live") {
+    audioPlayer.currentTime = 0;
+    audioPlayer.play().catch(() => {});
+    return;
+  }
   if (recitationMode !== "quran") {
     audioPlayer.currentTime = 0;
     audioPlayer.play().catch(() => {});
@@ -1343,9 +1359,36 @@ searchInput.addEventListener("input", event => {
 function updateRecitationSelection() {
   const choice = readerSelect.value;
   playingFullSurahFallback = false;
-  // Any new reader choice supersedes every older asynchronous restore.
   ++standardRestoreToken;
   standardRestoreInProgress = false;
+
+  if (choice === "live:cairo_radio") {
+    recitationMode = "live";
+    ++audioRequestNumber;
+    loadingAudio = false;
+    audioPlayer.pause();
+    audioPlayer.removeAttribute("src");
+    audioPlayer.load();
+    archiveRecitationPlayer.src = "about:blank";
+    archiveRecitationWrap.hidden = true;
+    audioPlayer.hidden = false;
+    audioButtons.hidden = false;
+    surahSelect.replaceChildren();
+    const option = document.createElement("option");
+    option.value = "live";
+    option.textContent = "إذاعة القرآن الكريم — بث مباشر على مدار الساعة";
+    surahSelect.appendChild(option);
+    surahSelect.disabled = true;
+
+    audioPlayer.src = "https://stream.radiojar.com/8s5u5tpdtwzuv";
+    audioPlayer.load();
+    audioPlayer.play().catch(() => {
+      setStatus(audioStatus, "اضغط زر التشغيل لبدء بث إذاعة القرآن الكريم.", true);
+    });
+    setStatus(audioStatus, "جاري بث إذاعة القرآن الكريم من القاهرة مباشرة...");
+    return;
+  }
+
   if (choice.startsWith("admin:reader:")) {
     recitationMode = "admin";
     ++audioRequestNumber;
@@ -1356,14 +1399,12 @@ function updateRecitationSelection() {
     } else {
       setStatus(audioStatus, "جاري تحميل التلاوات من لوحة التحكم...");
       loadAdminRecitations().then(() => {
-        // Only update the player if the user is still on this admin reader.
         if (readerSelect.value === choice && recitationMode === "admin") showAdminReaderTracks(readerKey);
       });
     }
     return;
   }
-  // The archive provides original numbered MP3s, 001.mp3 through 114.mp3.
-  // Match each file to the Quran API's Arabic surah name.
+
   if (choice === "archive:khatma") {
     recitationMode = "khatma";
     ++audioRequestNumber;
@@ -1395,7 +1436,6 @@ function updateRecitationSelection() {
     return;
   }
 
-  // Use original Archive MP3 files as selectable items in the surah dropdown.
   if (choice === "archive:rokya") {
     recitationMode = "ruqya";
     ++audioRequestNumber;
@@ -1422,39 +1462,12 @@ function updateRecitationSelection() {
     return;
   }
 
-  const item = archiveItems[choice];
-  if (item) {
-    recitationMode = "archive";
-    ++audioRequestNumber;
-    loadingAudio = false;
-    audioPlayer.pause();
-    audioPlayer.removeAttribute("src");
-    audioPlayer.load();
-    audioPlayer.hidden = true;
-    audioButtons.hidden = true;
-    archiveRecitationWrap.hidden = false;
-    archiveRecitationPlayer.title = "مشغل " + item.title;
-    archiveRecitationPlayer.src = item.embed;
-    archiveRecitationLink.href = item.details;
-    archiveRecitationLink.textContent = "فتح التسجيل الأصلي على Internet Archive ↗";
-    surahSelect.replaceChildren();
-    const option = document.createElement("option");
-    option.value = "archive";
-    option.textContent = "التسجيل الكامل — ختمة ١٤٣٠ هـ";
-    surahSelect.appendChild(option);
-    surahSelect.disabled = true;
-    setStatus(audioStatus, "تم اختيار: " + item.title + ". شغّل التسجيل من المشغّل أدناه.");
-    return;
-  }
-
-  // Restore standard Quran readers. Rebuild the surah list immediately from
-  // cached metadata, then load the selected surah; stale async requests cannot
-  // overwrite this state because every reader change advances the restore token.
   const standardReaders = new Set([
-    "ar.alafasy",
-    "ar.abdurrahmaansudais",
-    "ar.husary",
-    "ar.minshawi"
+    "ar.alafasy", "ar.abdurrahmaansudais", "ar.mahermuaiqly", "ar.saeedghamdi",
+    "ar.abdulbasitmurattal", "ar.minshawi", "ar.husary", "ar.ahmedajamy",
+    "ar.shuraim", "ar.hudhaify", "ar.muhammadayyoub", "ar.muhammadjibreel",
+    "ar.yasseraldossari", "ar.nasseralqatami", "ar.salahalbudair",
+    "ar.abdulmohsensalqasim", "ar.azizalahmad", "ar.abdullahbasfar"
   ]);
 
   if (!standardReaders.has(choice)) {
@@ -1561,7 +1574,6 @@ playPageButton.addEventListener("click", playCurrentPage);
 savePageButton.addEventListener("click", () => { savedReadingPage = currentPage; localStorage.setItem("quraaReadingPage", String(currentPage)); pageCaption.textContent = "تم حفظ موضع القراءة: صفحة " + toArabicNumbers(currentPage) + " من ٦٠٤."; });
 resumePageButton.addEventListener("click", () => loadMushafPage(savedReadingPage || 1));
 
-// === QURAA reading tools: themes, font size, whole-Quran search, sharing, tafsir ===
 (function initQuraaTools(){
   const themeEl=document.getElementById('quraaTheme');
   const fontValue=document.getElementById('quraaFontValue');
@@ -1609,7 +1621,6 @@ resumePageButton.addEventListener("click", () => loadMushafPage(savedReadingPage
       x.fillStyle='#d8b66a';x.font='bold 42px Tahoma, Arial';x.fillText('قُرّاء | QURAA',540,145);
       x.fillStyle='#f8f4e9';
       const words=a.text.split(/\s+/);let lines=[],fontSize=82,lineHeight=96;
-      // اجعل الآية هي العنصر الرئيسي في البطاقة؛ القصيرة كبيرة والطويلة تتقلص فقط عند الحاجة.
       function wrapVerse(size){x.font='bold '+size+'px Tahoma, Arial';const out=[];let ln='';for(const w of words){const test=ln?ln+' '+w:w;if(x.measureText(test).width>920&&ln){out.push(ln);ln=w;}else ln=test;}if(ln)out.push(ln);return out;}
       while(fontSize>34){lines=wrapVerse(fontSize);lineHeight=Math.round(fontSize*1.34);if(lines.length*lineHeight<=680)break;fontSize-=2;}
       lines=wrapVerse(fontSize);lineHeight=Math.round(fontSize*1.34);x.font='bold '+fontSize+'px Tahoma, Arial';
@@ -1629,7 +1640,6 @@ resumePageButton.addEventListener("click", () => loadMushafPage(savedReadingPage
       save.addEventListener('click',()=>{
         if(!pendingAyahImageBlob){shareStatus.textContent='أنشئ البطاقة أولًا ثم جرّب الحفظ.';return;}
         const filename='QURAA-ayah-'+a.globalNumber+'.png';
-        // ابدأ بتنزيل مباشر من ضغطة المستخدم؛ مشاركة الملفات قد تفتح قائمة إرسال ولا تحفظ الملف.
         const url=URL.createObjectURL(pendingAyahImageBlob);
         const link=document.createElement('a');link.href=url;link.download=filename;link.rel='noopener';link.style.position='fixed';link.style.left='-9999px';document.body.appendChild(link);
         try{link.click();shareStatus.textContent='تم طلب تنزيل '+filename+'. افحص إشعار التنزيلات أو مجلد Download.';}
